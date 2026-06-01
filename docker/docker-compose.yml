@@ -1,0 +1,41 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: ./docker/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .example.env
+    ports:
+      - "8080:8080"
+
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    env_file:
+      - .example.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 3s
+      retries: 3
+  
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    ports: 
+      - "8081:8080"
+    environment:
+      SWAGGER_JSON: /openapi.yaml
+    volumes:
+      - ../api/openapi.yaml:/openapi.yaml:ro
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:

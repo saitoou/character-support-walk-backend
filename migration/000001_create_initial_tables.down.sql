@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS walks;
+DROP TABLE IF EXISTS walk_options;
+DROP TABLE IF EXISTS users;

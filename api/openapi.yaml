@@ -1,0 +1,724 @@
+openapi: 3.0.3
+
+info:
+  title: Character Support Walk API
+  description: API specification f([github.com](https://github.com/saitoou/todo-prac/tree/main))ort-walk backend.
+  version: 0.1.0
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+
+tags:
+  - name: Auth
+    description: Authentication APIs
+  - name: Home
+    description: Home screen aggregation APIs
+  - name: Walks
+    description: Walk record APIs
+  - name: WalkOptions
+    description: Walk option APIs
+  - name: Walker
+    description: Walker profile APIs
+  - name: Notifications
+    description: Push token and notification setting APIs
+
+security:
+  - BearerAuth: []
+
+paths:
+  /auth/dev-login:
+    post:
+      tags:
+        - Auth
+      summary: Development login
+      operationId: devLogin
+      security: []
+      responses:
+        '200':
+          description: Development login succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevLoginResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/google:
+    post:
+      tags:
+        - Auth
+      summary: Login with Google ID token
+      operationId: loginWithGoogle
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoogleLoginRequest'
+      responses:
+        '200':
+          description: Login succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: Refresh access token
+      operationId: refreshAccessToken
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: Access token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshTokenResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Logout
+      operationId: logout
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+      responses:
+        '204':
+          description: Logout succeeded
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /home:
+    get:
+      tags:
+        - Home
+      summary: Get home data
+      operationId: getHome
+      responses:
+        '200':
+          description: Home data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /walk-options:
+    get:
+      tags:
+        - WalkOptions
+      summary: Get walk options
+      operationId: getWalkOptions
+      responses:
+        '200':
+          description: Walk options
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalkOptionListResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /walks:
+    get:
+      tags:
+        - Walks
+      summary: Get walk records
+      operationId: getWalks
+      responses:
+        '200':
+          description: Walk records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WalkRecordResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Walks
+      summary: Start walk
+      operationId: startWalk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartWalkRequest'
+      responses:
+        '200':
+          description: Walk started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StartWalkResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /walks/{walkID}:
+    get:
+      tags:
+        - Walks
+      summary: Get walk detail
+      operationId: getWalk
+      parameters:
+        - $ref: '#/components/parameters/WalkID'
+      responses:
+        '200':
+          description: Walk detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalkRecordResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /walks/{walkID}/complete:
+    patch:
+      tags:
+        - Walks
+      summary: Complete walk
+      operationId: completeWalk
+      parameters:
+        - $ref: '#/components/parameters/WalkID'
+      responses:
+        '200':
+          description: Walk completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /walks/{walkID}/cancel:
+    patch:
+      tags:
+        - Walks
+      summary: Cancel walk
+      operationId: cancelWalk
+      parameters:
+        - $ref: '#/components/parameters/WalkID'
+      responses:
+        '200':
+          description: Walk canceled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /walker:
+    get:
+      tags:
+        - Walker
+      summary: Get walker profile
+      operationId: getWalker
+      responses:
+        '200':
+          description: Walker profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalkerResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    patch:
+      tags:
+        - Walker
+      summary: Update walker profile
+      operationId: updateWalker
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWalkerRequest'
+      responses:
+        '200':
+          description: Walker profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalkerResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Walker
+      summary: Deactivate walker account
+      operationId: deactivateWalker
+      responses:
+        '204':
+          description: Walker account deactivated
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /push-tokens:
+    post:
+      tags:
+        - Notifications
+      summary: Register or update push token
+      operationId: upsertPushToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PushTokenRequest'
+      responses:
+        '200':
+          description: Push token registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PushTokenResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /notification-settings:
+    get:
+      tags:
+        - Notifications
+      summary: Get notification settings
+      operationId: getNotificationSettings
+      responses:
+        '200':
+          description: Notification settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationSettingsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    patch:
+      tags:
+        - Notifications
+      summary: Update notification settings
+      operationId: updateNotificationSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNotificationSettingsRequest'
+      responses:
+        '200':
+          description: Notification settings updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationSettingsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    WalkID:
+      name: walkID
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      example: 019e1cd3-8194-7a36-816b-2f38206ca52d
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: invalid request
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: unauthorized
+
+    GatewayTimeout:
+      description: Request timeout
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: request timeout
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: internal server error
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: unauthorized
+
+    MessageResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: walk completed
+
+    GoogleLoginRequest:
+      type: object
+      required:
+        - id_token
+      properties:
+        id_token:
+          type: string
+          example: eyJhbGciOiJSUzI1NiIs...
+
+    AuthTokenResponse:
+      type: object
+      required:
+        - access_token
+        - refresh_token
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+
+    RefreshRequest:
+      type: object
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+
+    LogoutRequest:
+      type: object
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+
+    RefreshTokenResponse:
+      type: object
+      required:
+        - access_token
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+          nullable: true
+          
+    DevLoginResponse:
+      type: object
+      required:
+        - access_token
+      properties:
+        access_token:
+          type: string
+
+    HomeResponse:
+      type: object
+      required:
+        - walker
+        - character
+      properties:
+        walker:
+          $ref: '#/components/schemas/HomeWalker'
+        character:
+          $ref: '#/components/schemas/HomeCharacter'
+        today_walk:
+          allOf:
+            - $ref: '#/components/schemas/HomeTodayWalk'
+          nullable: true
+
+    HomeWalker:
+      type: object
+      required:
+        - nickname
+      properties:
+        nickname:
+          type: string
+          example: new user
+
+    HomeCharacter:
+      type: object
+      required:
+        - supporter_type
+      properties:
+        supporter_type:
+          $ref: '#/components/schemas/SupporterType'
+
+    HomeTodayWalk:
+      type: object
+      required:
+        - walk_id
+        - status
+      properties:
+        walk_id:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/WalkStatus'
+
+    StartWalkRequest:
+      type: object
+      required:
+        - walk_option_id
+      properties:
+        walk_option_id:
+          type: integer
+          example: 1
+
+    StartWalkResponse:
+      type: object
+      required:
+        - walk_id
+        - status
+      properties:
+        walk_id:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/WalkStatus'
+
+    WalkRecordResponse:
+      type: object
+      required:
+        - id
+        - walk_option_id
+        - status
+        - started_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        walk_option_id:
+          type: integer
+          example: 1
+        status:
+          $ref: '#/components/schemas/WalkStatus'
+        started_at:
+          type: string
+          format: date-time
+        finished_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    WalkOptionListResponse:
+      type: object
+      required:
+        - walk_options
+      properties:
+        walk_options:
+          type: array
+          items:
+            $ref: '#/components/schemas/WalkOptionResponse'
+
+    WalkOptionResponse:
+      type: object
+      required:
+        - id
+        - category
+        - title
+      properties:
+        id:
+          type: string
+          example: '1'
+        category:
+          type: string
+          example: free
+        title:
+          type: string
+          example: ふらっとそこらへん
+
+    WalkerResponse:
+      type: object
+      required:
+        - id
+        - nickname
+        - supporter_type
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        nickname:
+          type: string
+          example: new user
+        supporter_type:
+          $ref: '#/components/schemas/SupporterType'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    UpdateWalkerRequest:
+      type: object
+      required:
+        - nickname
+        - supporter_type
+      properties:
+        nickname:
+          type: string
+          example: change_nickname
+        supporter_type:
+          $ref: '#/components/schemas/SupporterType'
+
+    PushTokenRequest:
+      type: object
+      required:
+        - token
+        - platform
+      properties:
+        token:
+          type: string
+          example: ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]
+        platform:
+          type: string
+          enum:
+            - ios
+            - android
+          example: ios
+
+    PushTokenResponse:
+      type: object
+      required:
+        - id
+        - is_active
+      properties:
+        id:
+          type: string
+          format: uuid
+        is_active:
+          type: boolean
+          example: true
+
+    UpdateNotificationSettingsRequest:
+      type: object
+      required:
+        - is_enabled
+      properties:
+        is_enabled:
+          type: boolean
+          example: true
+
+    NotificationSettingsResponse:
+      type: object
+      required:
+        - is_enabled
+      properties:
+        is_enabled:
+          type: boolean
+          example: true
+
+    WalkStatus:
+      type: string
+      enum:
+        - walking
+        - completed
+        - canceled
+      example: walking
+
+    SupporterType:
+      type: string
+      enum:
+        - dog
+        - cat
+      example: dog
