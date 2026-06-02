@@ -9,7 +9,7 @@ import (
 
 func RateLimiter() echo.MiddlewareFunc {
 	return middleware.RateLimiterWithConfig(middleware.RateLimiterConfig{
-		Store: middleware.NewRateLimiterMemoryStore(20),
+		Store: middleware.NewRateLimiterMemoryStore(100),
 		ErrorHandler: func(c *echo.Context, err error) error {
 			return c.JSON(http.StatusTooManyRequests, map[string]string{
 				"message": "too many request",
