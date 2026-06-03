@@ -1,12 +1,18 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/chocoko/character-support-walk-backend/gen/openapi/v1"
+	"github.com/chocoko/character-support-walk-backend/internal/domain/entity"
 	"github.com/chocoko/character-support-walk-backend/internal/usecase"
 	"github.com/labstack/echo/v5"
 )
+
+type WalkOptionUsecase interface {
+	List(ctx context.Context) ([]entity.WalkOption, error)
+}
 
 type WalkOptionHandler struct {
 	uc *usecase.WalkOptionUsecase

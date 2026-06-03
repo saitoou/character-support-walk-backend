@@ -11,12 +11,16 @@ import (
 	"github.com/labstack/echo/v5"
 )
 
+type HomeUsecase interface {
+	GetHome(ctx context.Context, userID string) (usecase.HomeOutput, error)
+}
+
 type HomeHandler struct {
-	uc             *usecase.HomeUsecase
+	uc             HomeUsecase
 	requestTimeout time.Duration
 }
 
-func NewHomeHandler(uc *usecase.HomeUsecase, requestTimeout time.Duration) *HomeHandler {
+func NewHomeHandler(uc HomeUsecase, requestTimeout time.Duration) *HomeHandler {
 	return &HomeHandler{uc: uc, requestTimeout: requestTimeout}
 }
 

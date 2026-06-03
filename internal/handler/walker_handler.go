@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -9,11 +10,17 @@ import (
 	"github.com/labstack/echo/v5"
 )
 
-type UserHandler struct {
-	uc *usecase.UserUsecase
+type UserUsecase interface {
+	FindByID(ctx context.Context, userID string) (usecase.WalkerOutput, error)
+	UpdateByID(ctx context.Context, userID string, nickname string, supporterType string) (usecase.WalkerOutput, error)
+	Deactivate(ctx context.Context, userID string) error
 }
 
-func NewUserHandler(uc *usecase.UserUsecase) *UserHandler {
+type UserHandler struct {
+	uc UserUsecase
+}
+
+func NewUserHandler(uc UserUsecase) *UserHandler {
 	return &UserHandler{uc: uc}
 }
 

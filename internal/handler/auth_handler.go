@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 
@@ -10,12 +11,18 @@ import (
 	"github.com/labstack/echo/v5"
 )
 
+type AuthUsecase interface {
+	LoginWithGoogle(ctx context.Context, idToken string) (usecase.UserTokens, error)
+	RefreshAccessToken(ctx context.Context, refreshToken string) (usecase.RefreshOutput, error)
+	Logout(ctx context.Context, refreshToken string) error
+}
+
 type AuthHandler struct {
-	uc         *usecase.AuthUsecase
+	uc         AuthUsecase
 	jwtService *auth.JWTService
 }
 
-func NewAuthHandler(uc *usecase.AuthUsecase, jwtService *auth.JWTService) *AuthHandler {
+func NewAuthHandler(uc AuthUsecase, jwtService *auth.JWTService) *AuthHandler {
 	return &AuthHandler{
 		uc:         uc,
 		jwtService: jwtService,

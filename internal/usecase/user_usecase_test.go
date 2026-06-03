@@ -25,7 +25,7 @@ func Test_UserUsecase_FindByID(t *testing.T) {
 		name     string
 		UserID   string
 		mockFunc func() (*mock.UserRepositoryMock, *mock.CharacterRepositoryMock)
-		want     walkerOutput
+		want     WalkerOutput
 		wantErr  error
 	}{
 		{
@@ -53,7 +53,7 @@ func Test_UserUsecase_FindByID(t *testing.T) {
 						},
 					}
 			},
-			want: walkerOutput{
+			want: WalkerOutput{
 				UserID:        parsedUUID,
 				Nickname:      "test user",
 				SupporterType: string(entity.SupporterTypeDog),
@@ -76,7 +76,7 @@ func Test_UserUsecase_FindByID(t *testing.T) {
 						},
 					}
 			},
-			want:    walkerOutput{},
+			want:    WalkerOutput{},
 			wantErr: ErrUnauthorized,
 		},
 	}
@@ -109,7 +109,7 @@ func Test_UserUsecase_UpdateByID(t *testing.T) {
 		nickname      string
 		supporterType string
 		mockFunc      func(tx *mock.MockTransaction) (*mock.UserRepositoryMock, *mock.CharacterRepositoryMock)
-		want          walkerOutput
+		want          WalkerOutput
 		wantErr       error
 	}{
 		{
@@ -152,7 +152,7 @@ func Test_UserUsecase_UpdateByID(t *testing.T) {
 						},
 					}
 			},
-			want: walkerOutput{
+			want: WalkerOutput{
 				UserID:        parsedUUID,
 				Nickname:      "test user",
 				SupporterType: string(entity.SupporterTypeDog),
@@ -190,7 +190,7 @@ func Test_UserUsecase_UpdateByID(t *testing.T) {
 						},
 					}
 			},
-			want:    walkerOutput{},
+			want:    WalkerOutput{},
 			wantErr: updateErr,
 		},
 		{
@@ -213,7 +213,7 @@ func Test_UserUsecase_UpdateByID(t *testing.T) {
 					},
 					&mock.CharacterRepositoryMock{}
 			},
-			want:    walkerOutput{},
+			want:    WalkerOutput{},
 			wantErr: ErrUnauthorized,
 		},
 	}

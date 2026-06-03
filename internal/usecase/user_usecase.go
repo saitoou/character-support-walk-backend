@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type walkerOutput struct {
+type WalkerOutput struct {
 	UserID        uuid.UUID `json:"id"`
 	Nickname      string    `json:"nickname"`
 	SupporterType string    `json:"supporter_type"`
@@ -34,27 +34,27 @@ func NewUserUsecase(
 	return &UserUsecase{userRepo: userRepo, characterRepo: characterRepo, authRepo: authRepo, tx: tx}
 }
 
-func (uc *UserUsecase) FindByID(ctx context.Context, userID string) (walkerOutput, error) {
+func (uc *UserUsecase) FindByID(ctx context.Context, userID string) (WalkerOutput, error) {
 
 	parsedUserID, err := uuid.Parse(userID)
 	if err != nil {
-		return walkerOutput{}, fmt.Errorf("failed to parse uuid :%w", err)
+		return WalkerOutput{}, fmt.Errorf("failed to parse uuid :%w", err)
 	}
 
 	user, err := uc.userRepo.FindByID(ctx, parsedUserID)
 	if err != nil {
-		return walkerOutput{}, fmt.Errorf("failed to find user: %w", err)
+		return WalkerOutput{}, fmt.Errorf("failed to find user: %w", err)
 	}
 	if user == nil || user.DeletedAt != nil {
-		return walkerOutput{}, fmt.Errorf("inactive user: %w", ErrUnauthorized)
+		return WalkerOutput{}, fmt.Errorf("inactive user: %w", ErrUnauthorized)
 	}
 
 	character, err := uc.characterRepo.FindByUserID(ctx, parsedUserID)
 	if err != nil {
-		return walkerOutput{}, fmt.Errorf("failed to find character: %w", err)
+		return WalkerOutput{}, fmt.Errorf("failed to find character: %w", err)
 	}
 
-	userProfile := walkerOutput{
+	userProfile := WalkerOutput{
 		UserID:        parsedUserID,
 		Nickname:      user.Nickname,
 		SupporterType: string(character.SupporterType),
@@ -71,20 +71,20 @@ func (uc *UserUsecase) UpdateByID(
 	userID string,
 	nickname string,
 	supporterType string,
-) (walkerOutput, error) {
+) (WalkerOutput, error) {
 
 	parsedUserID, err := uuid.Parse(userID)
 	if err != nil {
-		return walkerOutput{}, fmt.Errorf("failed to parse uuid :%v", err)
+		return WalkerOutput{}, fmt.Errorf("failed to parse uuid :%v", err)
 	}
 
 	if err := EnsureActiveUser(ctx, uc.userRepo, parsedUserID); err != nil {
-		return walkerOutput{}, fmt.Errorf("ensure active user: %w", ErrUnauthorized)
+		return WalkerOutput{}, fmt.Errorf("ensure active user: %w", ErrUnauthorized)
 	}
 
 	parsedSupporterType, err := entity.NewSupporterType(supporterType)
 	if err != nil {
-		return walkerOutput{}, fmt.Errorf("invalid suppoter type: %w", err)
+		return WalkerOutput{}, fmt.Errorf("invalid suppoter type: %w", err)
 	}
 	now := time.Now().UTC()
 
@@ -105,10 +105,10 @@ func (uc *UserUsecase) UpdateByID(
 		return nil
 	})
 	if err != nil {
-		return walkerOutput{}, fmt.Errorf("failed to update user profile: %w", err)
+		return WalkerOutput{}, fmt.Errorf("failed to update user profile: %w", err)
 	}
 
-	return walkerOutput{
+	return WalkerOutput{
 		UserID:        updatedUser.ID,
 		Nickname:      updatedUser.Nickname,
 		SupporterType: string(updatedCharacter.SupporterType),
