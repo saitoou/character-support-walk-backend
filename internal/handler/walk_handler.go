@@ -6,15 +6,14 @@ import (
 	"net/http"
 
 	"github.com/chocoko/character-support-walk-backend/gen/openapi/v1"
-	"github.com/chocoko/character-support-walk-backend/internal/domain/entity"
 	"github.com/chocoko/character-support-walk-backend/internal/usecase"
 	"github.com/labstack/echo/v5"
 )
 
 type WalkUsecase interface {
-	Start(ctx context.Context, walkOptionId int, userID string) (*usecase.StartWalkOutput, error)
-	GetWalks(ctx context.Context, userID string) ([]entity.Walk, error)
-	GetWalking(ctx context.Context, userID string, walkID string) (*entity.Walk, error)
+	Start(ctx context.Context, walkOptionId int, userID string) (usecase.StartWalkOutput, error)
+	GetWalks(ctx context.Context, userID string) (usecase.WalkListOutput, error)
+	GetWalking(ctx context.Context, userID string, walkID string) (usecase.WalkOutput, error)
 	UpdateComplete(ctx context.Context, userID, walkID string) error
 	UpdateCancel(ctx context.Context, userID, walkID string) error
 }
@@ -79,8 +78,8 @@ func (h *WalkHandler) GetWalks(c *echo.Context) error {
 		})
 	}
 
-	res := make([]openapi.WalkRecordResponse, 0, len(walks))
-	for _, walk := range walks {
+	res := make([]openapi.WalkRecordResponse, 0, len(walks.Walks))
+	for _, walk := range walks.Walks {
 		res = append(res, openapi.WalkRecordResponse{
 			Id:           walk.ID,
 			WalkOptionId: walk.WalkOptionID,

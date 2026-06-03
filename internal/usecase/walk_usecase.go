@@ -16,6 +16,20 @@ type StartWalkOutput struct {
 	Status string
 }
 
+type WalkOutput struct {
+	ID           uuid.UUID  `json:"id"`
+	WalkOptionID int        `json:"walk_option_id"`
+	Status       string     `json:"status"`
+	StartedAt    time.Time  `json:"started_at"`
+	FinishedAt   *time.Time `json:"finished_at,omitempty"`
+	CreatedAt    time.Time  `json:"created_at"`
+	UpdatedAt    time.Time  `json:"updated_at"`
+}
+
+type WalkListOutput struct {
+	Walks []WalkOutput `json:"walks"`
+}
+
 type WalkUsecase struct {
 	walkRepo repository.WalkRepository
 	userRepo repository.UserRepository
@@ -25,21 +39,21 @@ func NewWalkUsecase(walkRepo repository.WalkRepository, userRepo repository.User
 	return &WalkUsecase{walkRepo: walkRepo, userRepo: userRepo}
 }
 
-func (uc *WalkUsecase) Start(ctx context.Context, walkOptionId int, userID string) (*StartWalkOutput, error) {
+func (uc *WalkUsecase) Start(ctx context.Context, walkOptionId int, userID string) (StartWalkOutput, error) {
 
 	now := time.Now().UTC()
 	walkUUID, err := uuid.NewV7()
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate uuid: %v", err)
+		return StartWalkOutput{}, fmt.Errorf("failed to generate uuid: %v", err)
 	}
 
 	parsedUserID, err := uuid.Parse(userID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse uuid :%w", err)
+		return StartWalkOutput{}, fmt.Errorf("failed to parse uuid :%w", err)
 	}
 
 	if err := EnsureActiveUser(ctx, uc.userRepo, parsedUserID); err != nil {
-		return nil, fmt.Errorf("ensure active user: %w", err)
+		return StartWalkOutput{}, fmt.Errorf("ensure active user: %w", err)
 	}
 
 	walk := entity.Walk{
@@ -54,54 +68,78 @@ func (uc *WalkUsecase) Start(ctx context.Context, walkOptionId int, userID strin
 	}
 
 	if err := uc.walkRepo.Create(ctx, walk); err != nil {
-		return nil, fmt.Errorf("failed to start walk: %w", err)
+		return StartWalkOutput{}, fmt.Errorf("failed to start walk: %w", err)
 	}
-	return &StartWalkOutput{
+	return StartWalkOutput{
 		WalkID: walkUUID,
 		Status: string(walk.Status),
 	}, nil
 }
 
-func (uc *WalkUsecase) GetWalks(ctx context.Context, userID string) ([]entity.Walk, error) {
+func (uc *WalkUsecase) GetWalks(ctx context.Context, userID string) (WalkListOutput, error) {
 
 	parsedUserID, err := uuid.Parse(userID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse uuid :%v", err)
+		return WalkListOutput{}, fmt.Errorf("failed to parse uuid :%v", err)
 	}
 
 	if err := EnsureActiveUser(ctx, uc.userRepo, parsedUserID); err != nil {
-		return nil, fmt.Errorf("ensure active user: %w", ErrUnauthorized)
+		return WalkListOutput{}, fmt.Errorf("ensure active user: %w", ErrUnauthorized)
 	}
 
 	result, err := uc.walkRepo.FindByUserID(ctx, parsedUserID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get walks: %w", err)
+		return WalkListOutput{}, fmt.Errorf("failed to get walks: %w", err)
 	}
 
-	return result, nil
+	outputs := make([]WalkOutput, 0, len(result))
+
+	for _, walk := range result {
+		outputs = append(outputs, WalkOutput{
+			ID:           walk.ID,
+			WalkOptionID: walk.WalkOptionID,
+			Status:       string(walk.Status),
+			StartedAt:    walk.StartedAt,
+			FinishedAt:   walk.FinishedAt,
+			CreatedAt:    walk.CreatedAt,
+			UpdatedAt:    walk.UpdatedAt,
+		})
+	}
+
+	return WalkListOutput{Walks: outputs}, nil
 }
 
-func (uc *WalkUsecase) GetWalking(ctx context.Context, userID string, walkID string) (*entity.Walk, error) {
+func (uc *WalkUsecase) GetWalking(ctx context.Context, userID string, walkID string) (WalkOutput, error) {
 	parsedUserID, err := uuid.Parse(userID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse uuid :%v", err)
+		return WalkOutput{}, fmt.Errorf("failed to parse uuid :%v", err)
 	}
 
 	if err := EnsureActiveUser(ctx, uc.userRepo, parsedUserID); err != nil {
-		return nil, fmt.Errorf("ensure active user: %w", ErrUnauthorized)
+		return WalkOutput{}, fmt.Errorf("ensure active user: %w", ErrUnauthorized)
 	}
 
 	parsedWalkID, err := uuid.Parse(walkID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse uuid :%v", err)
+		return WalkOutput{}, fmt.Errorf("failed to parse uuid :%v", err)
 	}
 
 	result, err := uc.walkRepo.FindByUserIDAndID(ctx, parsedUserID, parsedWalkID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get walks: %w", err)
+		return WalkOutput{}, fmt.Errorf("failed to get walks: %w", err)
 	}
 
-	return result, nil
+	output := WalkOutput{
+		ID:           result.ID,
+		WalkOptionID: result.WalkOptionID,
+		Status:       string(result.Status),
+		StartedAt:    result.StartedAt,
+		FinishedAt:   result.FinishedAt,
+		CreatedAt:    result.CreatedAt,
+		UpdatedAt:    result.UpdatedAt,
+	}
+
+	return output, nil
 }
 
 func (uc *WalkUsecase) UpdateComplete(ctx context.Context, userID, walkID string) error {

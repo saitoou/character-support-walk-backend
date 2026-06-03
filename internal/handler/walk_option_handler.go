@@ -5,13 +5,12 @@ import (
 	"net/http"
 
 	"github.com/chocoko/character-support-walk-backend/gen/openapi/v1"
-	"github.com/chocoko/character-support-walk-backend/internal/domain/entity"
 	"github.com/chocoko/character-support-walk-backend/internal/usecase"
 	"github.com/labstack/echo/v5"
 )
 
 type WalkOptionUsecase interface {
-	List(ctx context.Context) ([]entity.WalkOption, error)
+	List(ctx context.Context) (usecase.WalkOptionListOutput, error)
 }
 
 type WalkOptionHandler struct {
@@ -31,8 +30,8 @@ func (h *WalkOptionHandler) GetWalkOptions(c *echo.Context) error {
 		})
 	}
 
-	options := make([]openapi.WalkOptionResponse, 0, len(res))
-	for _, option := range res {
+	options := make([]openapi.WalkOptionResponse, 0, len(res.WalkOptions))
+	for _, option := range res.WalkOptions {
 		options = append(options, openapi.WalkOptionResponse{
 			Id:       option.ID,
 			Category: option.Category,
