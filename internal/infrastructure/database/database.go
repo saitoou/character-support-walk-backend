@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/XSAM/otelsql"
 	"github.com/chocoko/character-support-walk-backend/config"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 func NewDB(cfg config.Config) (*sql.DB, error) {
@@ -28,7 +30,12 @@ func NewDB(cfg config.Config) (*sql.DB, error) {
 		"sslmode", cfg.DB.SSLMode,
 	)
 
-	database, err := sql.Open("pgx", dsn)
+	driverName, err := otelsql.Register("pgx")
+	if err != nil {
+		return nil, fmt.Errorf("failed to register otel sql driver: %w", &err)
+	}
+
+	database, err := sql.Open(driverName, dsn)
 	if err != nil {
 		return nil, fmt.Errorf("sql open failed: %w", err)
 	}

@@ -10,6 +10,7 @@ import (
 	"github.com/chocoko/character-support-walk-backend/internal/domain/entity"
 	"github.com/chocoko/character-support-walk-backend/internal/infrastructure/database"
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel"
 )
 
 type UserRepository struct {
@@ -21,6 +22,12 @@ func NewUserRepository(db database.DBTX) *UserRepository {
 }
 
 func (r *UserRepository) FindByID(ctx context.Context, userID uuid.UUID) (*entity.User, error) {
+	ctx, span := otel.Tracer("character-support-walk-api").Start(
+		ctx,
+		"UserRepository.FindByID",
+	)
+	defer span.End()
+
 	query := `
 	  SELECT
 		id,

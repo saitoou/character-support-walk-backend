@@ -10,6 +10,7 @@ import (
 	"github.com/chocoko/character-support-walk-backend/internal/domain/entity"
 	"github.com/chocoko/character-support-walk-backend/internal/infrastructure/database"
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel"
 )
 
 type WalkRepository struct {
@@ -21,6 +22,13 @@ func NewWalkRepository(db database.DBTX) *WalkRepository {
 }
 
 func (r *WalkRepository) Create(ctx context.Context, walk entity.Walk) error {
+
+	ctx, span := otel.Tracer("character-support-walk-api").Start(
+		ctx,
+		"WalkRepository.Create",
+	)
+	defer span.End()
+
 	query := `
 	  INSERT INTO walks (
 	    id,
@@ -109,6 +117,12 @@ func (r *WalkRepository) FindByUserID(ctx context.Context, userID uuid.UUID) ([]
 
 func (r *WalkRepository) FindByUserIDAndID(ctx context.Context, userID uuid.UUID, walkID uuid.UUID) (*entity.Walk, error) {
 
+	ctx, span := otel.Tracer("character-support-walk-api").Start(
+		ctx,
+		"WalkRepository.FindByUserIDAndID",
+	)
+	defer span.End()
+
 	query := `
 	  SELECT
 	    id,
@@ -146,6 +160,13 @@ func (r *WalkRepository) FindByUserIDAndID(ctx context.Context, userID uuid.UUID
 }
 
 func (r *WalkRepository) UpdateStatus(ctx context.Context, walk entity.Walk) error {
+
+	ctx, span := otel.Tracer("character-support-walk-api").Start(
+		ctx,
+		"WalkRepository.UpdateStatus",
+	)
+	defer span.End()
+
 	query := `
 	  UPDATE walks
 	  SET
@@ -176,6 +197,11 @@ func (r *WalkRepository) UpdateStatus(ctx context.Context, walk entity.Walk) err
 
 func (r *WalkRepository) FindTodayWalkByUserID(ctx context.Context, userID uuid.UUID, todayStart time.Time, tomorrowStart time.Time) (*entity.Walk, error) {
 
+	ctx, span := otel.Tracer("character-support-walk-api").Start(
+		ctx,
+		"WalkRepository.FindByID",
+	)
+	defer span.End()
 	query := `
 	  SElECT
 	    id,
