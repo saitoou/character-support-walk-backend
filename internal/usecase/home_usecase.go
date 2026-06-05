@@ -8,6 +8,7 @@ import (
 	"github.com/chocoko/character-support-walk-backend/internal/domain/entity"
 	"github.com/chocoko/character-support-walk-backend/internal/domain/repository"
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -45,6 +46,11 @@ func NewHomeUsecase(
 }
 
 func (uc *HomeUsecase) GetHome(ctx context.Context, userID string) (HomeOutput, error) {
+	ctx, span := otel.Tracer("character-support-walk-api").Start(
+		ctx,
+		"HomeUsecase.GetHome",
+	)
+	defer span.End()
 
 	// JSTの"今日"に対応するUTC範囲で検索をしたいため
 	loc, err := time.LoadLocation("Asia/Tokyo")
