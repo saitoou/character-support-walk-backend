@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel"
 
 	"github.com/chocoko/character-support-walk-backend/internal/domain/entity"
 	"github.com/chocoko/character-support-walk-backend/internal/domain/repository"
@@ -40,6 +41,12 @@ func NewWalkUsecase(walkRepo repository.WalkRepository, userRepo repository.User
 }
 
 func (uc *WalkUsecase) Start(ctx context.Context, walkOptionId int, userID string) (StartWalkOutput, error) {
+
+	ctx, span := otel.Tracer("character-support-walk-api").Start(
+		ctx,
+		"WalkUsecase.Start",
+	)
+	defer span.End()
 
 	now := time.Now().UTC()
 	walkUUID, err := uuid.NewV7()
@@ -143,6 +150,11 @@ func (uc *WalkUsecase) GetWalking(ctx context.Context, userID string, walkID str
 }
 
 func (uc *WalkUsecase) UpdateComplete(ctx context.Context, userID, walkID string) error {
+	ctx, span := otel.Tracer("character-support-walk-api").Start(
+		ctx,
+		"WalkUsecase.UpdateComplete",
+	)
+	defer span.End()
 
 	parsedUserID, err := uuid.Parse(userID)
 	if err != nil {
@@ -182,6 +194,11 @@ func (uc *WalkUsecase) UpdateComplete(ctx context.Context, userID, walkID string
 }
 
 func (uc *WalkUsecase) UpdateCancel(ctx context.Context, userID, walkID string) error {
+	ctx, span := otel.Tracer("character-support-walk-api").Start(
+		ctx,
+		"WalkUsecase.UpdateCancel",
+	)
+	defer span.End()
 
 	parsedUserID, err := uuid.Parse(userID)
 	if err != nil {
