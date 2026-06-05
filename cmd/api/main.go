@@ -12,14 +12,29 @@ import (
 	"github.com/chocoko/character-support-walk-backend/internal/container"
 	"github.com/chocoko/character-support-walk-backend/internal/infrastructure/auth"
 	"github.com/chocoko/character-support-walk-backend/internal/infrastructure/database"
+	"github.com/chocoko/character-support-walk-backend/internal/infrastructure/observability"
 	"github.com/chocoko/character-support-walk-backend/internal/logger"
 	appmiddlware "github.com/chocoko/character-support-walk-backend/internal/middleware"
 	"github.com/chocoko/character-support-walk-backend/internal/router"
+	echootel "github.com/labstack/echo-opentelemetry"
 	"github.com/labstack/echo/v5"
 	echomiddleware "github.com/labstack/echo/v5/middleware"
 )
 
 func main() {
+
+	ctx := context.Background()
+
+	shutdown, err := observability.InitTracer(ctx)
+	if err != nil {
+		slog.Error("failed to init tracer", "error", err)
+		os.Exit(1)
+	}
+	defer func() {
+		if err := shutdown(ctx); err != nil {
+			slog.Error("failed to shutdown tracer", "error", err)
+		}
+	}()
 
 	cfg := config.Load()
 	appLogger := logger.New(cfg.Logger.Level)
@@ -42,6 +57,7 @@ func main() {
 
 	e := echo.New()
 	e.Use(echomiddleware.Recover())
+	e.Use(echootel.NewMiddleware("character-support-walk-api"))
 	e.Use(appmiddlware.CustomCORS())
 	e.Use(appmiddlware.RateLimiter())
 	e.Use(echomiddleware.RequestID())
