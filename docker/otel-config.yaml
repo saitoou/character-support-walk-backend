@@ -15,6 +15,10 @@ processors:
 exporters:
   prometheus:
     endpoint: 0.0.0.0:8889
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
   debug:
     verbosity: detailed
 
@@ -28,4 +32,4 @@ service:
     traces:
       receivers: [otlp]
       processors: [memory_limiter]
-      exporters: [debug]
+      exporters: [otlp/jaeger, debug]

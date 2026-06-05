@@ -63,6 +63,12 @@ services:
       - "8889:8889"
     depends_on:
       - prometheus
+  
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "4317"
 
 volumes:
   postgres_data:
