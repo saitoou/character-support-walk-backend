@@ -6,6 +6,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      otel-collector:
+        condition: service_started
     env_file:
       - .example.env
     ports:
@@ -54,12 +56,13 @@ services:
   
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
-    command: ["--config=/etc/otelcol/config.yaml"]
+    command: ["--config=/etc/otelcol/otel-config.yaml"]
     volumes:
-      - ./otel-config.yaml:/etc/otelcol/config.yaml:ro
+      - ./otel-config.yaml:/etc/otelcol/otel-config.yaml:ro
     ports:
       - "4317:4317"
       - "4318:4318"
+      - "8888:8888"
       - "8889:8889"
     depends_on:
       - prometheus
