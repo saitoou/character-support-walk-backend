@@ -344,3 +344,6 @@ max: 125.22ms
 - p99分析
 - DBデータ大量増加時
 ```
+
+## Grafanaを使用し可視化
+<img width=800px src="../../images/image7.png">
