@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/chocoko/character-support-walk-backend/internal/apperr"
 	"github.com/chocoko/character-support-walk-backend/internal/domain/entity"
 	"github.com/chocoko/character-support-walk-backend/internal/infrastructure/database"
 	"github.com/google/uuid"
@@ -28,34 +29,39 @@ func (r *UserRepository) FindByID(ctx context.Context, userID uuid.UUID) (*entit
 	)
 	defer span.End()
 
-	query := `
-	  SELECT
-		id,
-		nickname,
-		created_at,
-		updated_at
-	  FROM users
-	  WHERE id = $1
-	    AND deleted_at IS NULL;
-	`
-	var user entity.User
+	// query := `
+	//   SELECT
+	// 	id,
+	// 	nickname,
+	// 	created_at,
+	// 	updated_at
+	//   FROM users
+	//   WHERE id = $1
+	//     AND deleted_at IS NULL;
+	// `
+	// var user entity.User
 
-	db := r.executor(ctx)
-	row := db.QueryRowContext(ctx, query, userID)
+	// db := r.executor(ctx)
+	// row := db.QueryRowContext(ctx, query, userID)
 
-	if err := row.Scan(
-		&user.ID,
-		&user.Nickname,
-		&user.CreatedAt,
-		&user.UpdatedAt,
-	); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("failed to find user: %w", err)
-	}
+	// if err := row.Scan(
+	// 	&user.ID,
+	// 	&user.Nickname,
+	// 	&user.CreatedAt,
+	// 	&user.UpdatedAt,
+	// ); err != nil {
+	// 	if errors.Is(err, sql.ErrNoRows) {
+	// 		return nil, nil
+	// 	}
+	// 	return nil, apperr.Wrap("failed to find user", err)
+	// }
 
-	return &user, nil
+	// return &user, nil
+
+	return nil, apperr.Wrap(
+		"test repository error",
+		fmt.Errorf("test error"),
+	)
 }
 
 func (r *UserRepository) Create(ctx context.Context, user entity.User) error {
